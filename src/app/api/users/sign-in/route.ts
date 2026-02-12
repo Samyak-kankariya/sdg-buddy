@@ -31,7 +31,7 @@ export async function POST(
         }
 
         const tokenPayload = {
-            id: user._id,
+            id: user._id.toString(),
         }
 
         const token = await new SignJWT(tokenPayload)

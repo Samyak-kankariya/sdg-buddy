@@ -54,9 +54,7 @@ export default function LoginScreen() {
         body: JSON.stringify({ email, password }),
         credentials: 'include',
       });
-
-      console.log(response);
-
+      
       if (!response.ok) {
         let message = 'Failed to sign in';
         try {

@@ -1,12 +1,13 @@
 import Footer from "@/components/layout/footer";
 import Header from "@/components/layout/header";
-import React from "react";
 
 interface MainLayoutProps {
     children: React.ReactNode;
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
+    //TODO: Get user from the backend    
+    
     return (
         <div style={{
             
@@ -14,7 +15,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             <div style={{
                 
             }}>
-            <Header />
+            <Header/>
               {children}
             <Footer />
             </div>

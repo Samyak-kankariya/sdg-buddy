@@ -1,3 +1,4 @@
+import { User } from 'lucide-react';
 import mongoose, { Schema } from 'mongoose';
 
 export interface User {

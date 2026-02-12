@@ -3,6 +3,7 @@ import { User, UserModel } from "@/models/user.model";
 import { NextRequest, NextResponse } from "next/server";
 import { sendMail } from "@/utils/mailer";
 import bcrypt from 'bcrypt';
+import { ProfileModel } from "@/models/profile.model";
 
 export async function POST(
     req: NextRequest,
@@ -32,6 +33,13 @@ export async function POST(
 
         const savedUser = await newUser.save();
  
+        const userProfile = new ProfileModel({
+            user: savedUser._id,
+            name: savedUser.name,
+        });
+        
+        await userProfile.save();
+        
         await sendMail({
             email: email,
             emailType: 'signup',
@@ -43,6 +51,7 @@ export async function POST(
         });
 
     }catch(err: any){
+        console.error("Error in sign-up:", err);
         return NextResponse.json({error: err.message}, {
             status: 500
         })

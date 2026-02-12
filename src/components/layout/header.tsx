@@ -1,24 +1,83 @@
-import { Bell, CheckCircle2 } from 'lucide-react';
+"use client";
 
-const Header = () => {
-    return (
-        <header className="bg-white shadow-sm sticky top-0 z-50">
-            <nav className="container mx-auto px-4 lg:px-6 py-4 flex justify-between items-center">
-                <div className="flex items-center space-x-3">
-                    <CheckCircle2 className="h-8 w-8 text-emerald-500" />
-                    <h1 className="text-2xl font-bold text-gray-800">
-                        SDG <span className="text-emerald-500">Buddy</span>
-                    </h1>
-                </div>
-                <div className="flex items-center space-x-4">
-                    <button className="text-gray-600 hover:text-emerald-500 transition-colors">
-                        <Bell className="h-6 w-6" />
-                    </button>
-                    <img src="https://placehold.co/40x40/a7f3d0/14532d?text=U" alt="User Avatar" className="h-10 w-10 rounded-full border-2 border-emerald-200" />
-                </div>
-            </nav>
-        </header>
-    );
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  size?: 'lg' | 'default';
+  'data-testid'?: string;
+}
+
+const Button = ({ className, size, children, ...props }: ButtonProps) => {
+  const sizeClasses = size === 'lg' ? 'text-lg px-8 py-3' : 'px-4 py-2';
+  return (
+    <button
+      className={`rounded-md text-white font-semibold transition-colors ${sizeClasses} ${className}`}
+      {...props}
+    >
+      {children}
+    </button>
+  );
 };
 
-export default Header;
+export default function Header() {
+  const router = useRouter();
+  const [user, setUser] = useState({
+        name: "",
+        points: 0,
+        streak: 0,
+        achievements: 0,
+      });
+    
+    useEffect(() => {
+        fetch('/api/get-dashboard-profile', {
+        method: 'GET',
+      }).then(res => res.json())
+      .then(data => {
+        // Process the fetched user profile data as needed
+        // For example, you might want to set it in state
+        if(data.profile){
+
+          const user = {
+            //obtain user object from profile api call
+            name: data.profile.name,
+            points: data.profile.totalPoints,
+            streak: data.profile.currentStreak,
+            achievements: data.profile.acheivements,
+          };
+          setUser(user);
+        }
+      });
+    }, [])
+
+  return (
+    <header className="bg-white shadow-md sticky top-0 z-50">
+      <nav className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+        <div onClick={() => {
+            router.push('/');
+        }} className="flex items-center space-x-3">
+          <span className="text-2xl">🌱</span>
+          <h1 className="text-xl font-bold text-emerald-600">SDG Buddy</h1>
+        </div>
+        {user.name == "" && <>
+          <Button
+            onClick={() => {
+              router.push("/sign-in");
+            }}
+            // size="lg"+
+            className="bg-emerald-600 hover:bg-emerald-700"
+            data-testid="button-hero-login"
+          >
+            Sign In
+          </Button>
+        </>}
+        {user.name != "" && <div className="flex items-center space-x-4">
+          <span className="text-xl font-bold text-emerald-600">{user.name}</span>
+          <div className="w-10 h-10 bg-emerald-200 rounded-full flex items-center justify-center font-bold text-emerald-700">
+            {user.name.split(' ')[0][0]}
+          </div>
+        </div>}
+      </nav>
+    </header>
+  );
+}

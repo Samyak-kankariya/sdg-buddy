@@ -6,6 +6,7 @@ import getTokenPayload from '@/utils/getTokenPayload';
 export async function middleware(request: NextRequest) {
 
     const tokenData = await getTokenPayload(request);
+    // const tokenDataJson = await tokenData.json().then(data => data);
 
     const path = request.nextUrl.pathname;
 
