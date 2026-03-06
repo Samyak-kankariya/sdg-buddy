@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link'; // 1. Imported Next.js Link component
 
 // Reusable SVG icon for branding consistency
 const LeafIcon = () => (
@@ -23,7 +24,6 @@ const LeafIcon = () => (
 );
 
 export default function LoginScreen() {
-  // State for the live counter
   const [actionsLogged, setActionsLogged] = useState(15482);
   const router = useRouter();
   const [email, setEmail] = useState('');
@@ -37,7 +37,6 @@ export default function LoginScreen() {
       setActionsLogged(prevCount => prevCount + (Math.floor(Math.random() * 5) + 1));
     }, 2500);
 
-    // Cleanup interval on component unmount
     return () => clearInterval(interval);
   }, []);
 
@@ -45,6 +44,7 @@ export default function LoginScreen() {
     event.preventDefault();
     setError(null);
     setIsSubmitting(true);
+    
     try {
       const response = await fetch('/api/users/sign-in', {
         method: 'POST',
@@ -64,9 +64,15 @@ export default function LoginScreen() {
         throw new Error(message);
       }
 
-      router.replace('/');
-    } catch (e: any) {
-      setError(e?.message || 'Something went wrong');
+      // 2. Assuming '/action' is your dashboard. Change to '/' if you want them on the landing page!
+      router.replace('/action'); 
+      
+    } catch (e: unknown) { // 3. Replaced 'any' with 'unknown'
+      if (e instanceof Error) {
+        setError(e.message);
+      } else {
+        setError('Something went wrong');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -74,11 +80,14 @@ export default function LoginScreen() {
 
   return (
     <div className="min-h-screen bg-[#111827] text-white flex items-center justify-center p-4 relative overflow-hidden font-['Poppins',_sans-serif]">
-      {/* Background animated gradient blobs */}
-      <div className="absolute inset-0 z-0 opacity-20">
+      
+      {/* 4. Added pointer-events-none to prevent background from blocking clicks */}
+      <div className="absolute inset-0 z-0 opacity-20 pointer-events-none">
         <div className="absolute top-0 left-0 w-72 h-72 md:w-96 md:h-96 bg-emerald-500 rounded-full filter blur-3xl animate-blob"></div>
         <div className="absolute top-0 right-0 w-72 h-72 md:w-96 md:h-96 bg-sky-500 rounded-full filter blur-3xl animate-blob animation-delay-2000"></div>
         <div className="absolute bottom-0 left-1/4 w-72 h-72 md:w-96 md:h-96 bg-green-500 rounded-full filter blur-3xl animate-blob animation-delay-4000"></div>
+        
+        {/* Pro tip: For production, move these keyframes into your src/app/globals.css file! */}
         <style jsx global>{`
           .animate-blob { animation: blob 7s infinite; }
           .animation-delay-2000 { animation-delay: 2s; }
@@ -116,6 +125,7 @@ export default function LoginScreen() {
                 placeholder="email@address.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                disabled={isSubmitting} // Disable inputs while submitting
               />
             </div>
             <div>
@@ -128,6 +138,7 @@ export default function LoginScreen() {
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                disabled={isSubmitting} // Disable inputs while submitting
               />
             </div>
             {error && (
@@ -151,8 +162,9 @@ export default function LoginScreen() {
              </p>
           </div>
         </div>
+        
         <p className="mt-6 text-center text-sm text-gray-400">
-           First time here? <a href="/sign-up" className="font-medium text-emerald-400 hover:text-emerald-300 transition-colors">Create an account.</a>
+           First time here? <Link href="/sign-up" className="font-medium text-emerald-400 hover:text-emerald-300 transition-colors">Create an account.</Link>
         </p>
       </div>
     </div>

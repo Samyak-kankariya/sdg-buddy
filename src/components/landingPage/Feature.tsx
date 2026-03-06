@@ -2,7 +2,6 @@ import React from 'react';
 
 // --- UI Component Placeholders ---
 // In a real project, these would be in separate files (e.g., @/components/ui/)
-
 const Card = ({ className, children }: { className?: string; children: React.ReactNode }) => (
   <div className={`bg-white rounded-lg shadow-md ${className}`}>
     {children}

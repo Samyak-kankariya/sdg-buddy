@@ -9,12 +9,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     //TODO: Get user from the backend    
     
     return (
-        <div style={{
-            
-        }}>
-            <div style={{
-                
-            }}>
+        <div>
+            <div>
             <Header/>
               {children}
             <Footer />

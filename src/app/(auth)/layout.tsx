@@ -5,16 +5,11 @@ interface AuthLayoutProps {
 }
 
 const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
+
     return (
-        <div style={{
-            
-        }}>
-            <div style={{
-                
-            }}>
-              {children}
-            </div>
-        </div>
+        <main>
+            {children}
+        </main>
     );
 };
 

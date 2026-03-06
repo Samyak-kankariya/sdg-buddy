@@ -2,8 +2,9 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link'; // 1. Import Next.js Link
 
-// Consistent LeafIcon for branding
+// Consistent LeafIcon for branding (Consider moving this to src/components/ui/LeafIcon.tsx!)
 export function LeafIcon() {
   return (
     <svg
@@ -50,6 +51,7 @@ export default function SignUpScreen() {
     setError(null);
     setSuccess(null);
     setIsSubmitting(true);
+    
     try {
       const response = await fetch('/api/users/sign-up', {
         method: 'POST',
@@ -73,10 +75,16 @@ export default function SignUpScreen() {
       setName('');
       setEmail('');
       setPassword('');
+      
       // Optionally route to sign-in after a short delay
       setTimeout(() => router.replace('/sign-in'), 2000);
-    } catch (e: any) {
-      setError(e?.message || 'Something went wrong');
+      
+    } catch (e: unknown) { // 2. Swapped 'any' for 'unknown'
+      if (e instanceof Error) {
+        setError(e.message);
+      } else {
+        setError('Something went wrong. Please try again.');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -84,11 +92,14 @@ export default function SignUpScreen() {
 
   return (
     <div className="min-h-screen bg-[#111827] text-white flex items-center justify-center p-4 relative overflow-hidden font-['Poppins',_sans-serif]">
-      {/* Background animated gradient blobs */}
-      <div className="absolute inset-0 z-0 opacity-20">
+      
+      {/* 3. Added pointer-events-none */}
+      <div className="absolute inset-0 z-0 opacity-20 pointer-events-none">
         <div className="absolute -top-10 -left-10 w-72 h-72 md:w-96 md:h-96 bg-emerald-600 rounded-full filter blur-3xl animate-blob"></div>
         <div className="absolute -top-10 -right-10 w-72 h-72 md:w-96 md:h-96 bg-sky-600 rounded-full filter blur-3xl animate-blob animation-delay-2000"></div>
         <div className="absolute -bottom-10 left-1/4 w-72 h-72 md:w-96 md:h-96 bg-green-600 rounded-full filter blur-3xl animate-blob animation-delay-4000"></div>
+        
+        {/* Recommendation: Move this to globals.css instead of injecting it on both auth pages */}
         <style jsx global>{`
           .animate-blob { animation: blob 8s infinite; }
           .animation-delay-2000 { animation-delay: 2s; }
@@ -145,30 +156,33 @@ export default function SignUpScreen() {
                 <label htmlFor="fullName" className="sr-only">Full Name</label>
                 <input 
                   id="fullName" type="text" required
-                  className="w-full px-4 py-3 bg-gray-800/60 border border-white/10 rounded-lg placeholder-gray-500 text-white focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all" 
+                  className="w-full px-4 py-3 bg-gray-800/60 border border-white/10 rounded-lg placeholder-gray-500 text-white focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all disabled:opacity-50" 
                   placeholder="Your Full Name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  disabled={isSubmitting} // 4. Lock inputs during fetch
                 />
               </div>
               <div>
                 <label htmlFor="email-signup" className="sr-only">Email</label>
                 <input 
                   id="email-signup" type="email" required
-                  className="w-full px-4 py-3 bg-gray-800/60 border border-white/10 rounded-lg placeholder-gray-500 text-white focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all" 
+                  className="w-full px-4 py-3 bg-gray-800/60 border border-white/10 rounded-lg placeholder-gray-500 text-white focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all disabled:opacity-50" 
                   placeholder="email@address.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  disabled={isSubmitting} // 4. Lock inputs during fetch
                 />
               </div>
               <div>
                 <label htmlFor="password-signup" className="sr-only">Password</label>
                 <input 
                   id="password-signup" type="password" required
-                  className="w-full px-4 py-3 bg-gray-800/60 border border-white/10 rounded-lg placeholder-gray-500 text-white focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all" 
+                  className="w-full px-4 py-3 bg-gray-800/60 border border-white/10 rounded-lg placeholder-gray-500 text-white focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all disabled:opacity-50" 
                   placeholder="Create a Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  disabled={isSubmitting} // 4. Lock inputs during fetch
                 />
               </div>
               {error && (
@@ -187,8 +201,9 @@ export default function SignUpScreen() {
                 </button>
               </div>
             </form>
+            
             <p className="mt-8 text-center text-sm text-gray-400">
-               Already have an account? <a href="/sign-in" className="font-medium text-emerald-400 hover:text-emerald-300 transition-colors">Log In.</a>
+               Already have an account? <Link href="/sign-in" className="font-medium text-emerald-400 hover:text-emerald-300 transition-colors">Log In.</Link>
             </p>
           </div>
         </div>

@@ -2,86 +2,95 @@
 
 import { SDGGoal } from "@/types/action";
 import { useEffect, useState } from "react";
+import { SDG_GOALS } from "@/constants/sdgGoals";
+
+// Initialize SDG data with points from the central SDG_GOALS
+const INITIAL_SDG_DATA = SDG_GOALS.map(goal => ({
+  ...goal,
+  points: 0,
+  description: undefined,
+}));
 
 export default function SDGGrid() {
-
-  const [sdgData, setSdgData] = useState([
-            //make an api call to get the array of 17 elements denoting points and set it to sdgData
-            { id: 1, name: "No Poverty", points: 0, color: "#E5243B" },
-            { id: 2, name: "Zero Hunger", points: 0, color: "#DDA63A" },
-            { id: 3, name: "Good Health and Well-being", points: 0, color: "#4C9F38" },
-            { id: 4, name: "Quality Education", points: 0, color: "#C5192D" },
-            { id: 5, name: "Gender Equality", points: 0, color: "#FF3A21" },
-            { id: 6, name: "Clean Water and Sanitation", points: 0, color: "#26BDE2" },
-            { id: 7, name: "Affordable and Clean Energy", points: 0, color: "#FCC30B" },
-            { id: 8, name: "Decent Work and Economic Growth", points: 0, color: "#A21942" },
-            { id: 9, name: "Industry, Innovation and Infrastructure", points: 0, color: "#FD6925" },
-            { id: 10, name: "Reduced Inequality", points: 0, color: "#DD1367" },
-            { id: 11, name: "Sustainable Cities and Communities", points: 0, color: "#FD9D24" },
-            { id: 12, name: "Responsible Consumption and Production", points: 0, color: "#BF8B2E" },
-            { id: 13, name: "Climate Action", points: 0, color: "#3F7E44" },
-            { id: 14, name: "Life Below Water", points: 0, color: "#0A97D9" },
-            { id: 15, name: "Life on Land", points: 0, color: "#56C02B" },
-            { id: 16, name: "Peace and Justice Strong Institutions", points: 0, color: "#00689D" },
-            { id: 17, name: "Partnerships for the Goals", points: 0, color: "#19486A" },
-        ]);
+  const [sdgData, setSdgData] = useState(INITIAL_SDG_DATA);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-        const sdgData = [
-      //make an api call to get the array of 17 elements denoting points and set it to sdgData
-      { id: 1, name: "No Poverty", points: 0, color: "#E5243B" },
-      { id: 2, name: "Zero Hunger", points: 0, color: "#DDA63A" },
-      { id: 3, name: "Good Health and Well-being", points: 0, color: "#4C9F38" },
-      { id: 4, name: "Quality Education", points: 0, color: "#C5192D" },
-      { id: 5, name: "Gender Equality", points: 0, color: "#FF3A21" },
-      { id: 6, name: "Clean Water and Sanitation", points: 0, color: "#26BDE2" },
-      { id: 7, name: "Affordable and Clean Energy", points: 0, color: "#FCC30B" },
-      { id: 8, name: "Decent Work and Economic Growth", points: 0, color: "#A21942" },
-      { id: 9, name: "Industry, Innovation and Infrastructure", points: 0, color: "#FD6925" },
-      { id: 10, name: "Reduced Inequality", points: 0, color: "#DD1367" },
-      { id: 11, name: "Sustainable Cities and Communities", points: 0, color: "#FD9D24" },
-      { id: 12, name: "Responsible Consumption and Production", points: 0, color: "#BF8B2E" },
-      { id: 13, name: "Climate Action", points: 0, color: "#3F7E44" },
-      { id: 14, name: "Life Below Water", points: 0, color: "#0A97D9" },
-      { id: 15, name: "Life on Land", points: 0, color: "#56C02B" },
-      { id: 16, name: "Peace and Justice Strong Institutions", points: 0, color: "#00689D" },
-      { id: 17, name: "Partnerships for the Goals", points: 0, color: "#19486A" },
-        ];
-        (() => {
-          fetch('/api/get-sdg-progress', {
-            method: 'GET',
-          }).then(res => res.json())
-          .then(data => {
-            // Process the fetched data as needed
-            data.forEach((item: { sdgId: number; points: number }) => {
-              sdgData[item.sdgId - 1].points = item.points;
-            });
-            setSdgData(sdgData);
-          });
-        })();
+    const fetchSDGProgress = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        const res = await fetch('/api/get-sdg-progress', { method: 'GET' });
+        
+        if (!res.ok) {
+          throw new Error("Failed to fetch SDG progress");
+        }
+        
+        const data = await res.json();
+        
+        // 2. Immutably update state using .map() and .find()
+        setSdgData(prevData => 
+          prevData.map(goal => {
+            // Safely find the progress data for this specific SDG ID
+            const progressItem = data.find((item: { sdgId: number; points: number }) => item.sdgId === goal.id);
+            
+            // If we found progress, return a NEW object with updated points. Otherwise, return the original.
+            return progressItem 
+              ? { ...goal, points: progressItem.points } 
+              : goal;
+          })
+        );
+        
+      } catch (err) {
+        console.error("Error fetching SDG progress:", err);
+        setError("Could not load your progress data.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSDGProgress();
   }, []);
-  
 
   return (
-    <section className="bg-white p-6 rounded-xl shadow-sm">
-      <h3 className="text-xl font-bold mb-4">My SDG Progress</h3>
-
-      <div className="grid grid-cols-3 sm:grid-cols-4 gap-4 text-center">
-        {sdgData.map(goal => (
-          <div key={goal.id} className="relative group">
-            <div
-              className="w-16 h-16 rounded-lg flex items-center justify-center text-white font-bold sdg-goal-card mx-auto"
-              style={{ backgroundColor: goal.color }}
-            >
-              {goal.id}
-            </div>
-
-            <div className="tooltip absolute bottom-0 right mb-2 px-3 py-1 bg-slate-800 text-white text-xs rounded-md left-1/2 -translate-x-1/2 transition-opacity duration-200 ease-in-out opacity-0 group-hover:opacity-100">
-              {goal.name}: {goal.points} pts
-            </div>
-          </div>
-        ))}
+    <section className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 min-h-[300px] flex flex-col">
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-xl font-bold text-emerald-800">My SDG Progress</h3>
+        {isLoading && <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-emerald-600"></div>}
       </div>
+
+      {error ? (
+        <div className="flex-grow flex items-center justify-center text-red-500 text-sm">
+          <p>{error}</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-5 gap-6 text-center">
+          {sdgData.map(goal => (
+            <div key={goal.id} className="relative group flex flex-col items-center">
+              
+              <div
+                className={`w-16 h-16 rounded-lg flex items-center justify-center text-white font-bold mx-auto transition-all duration-200 shadow-sm cursor-default
+                  ${goal.points > 0 ? 'ring-2 ring-offset-2 ring-emerald-500 scale-105' : 'opacity-70 hover:opacity-100'}
+                `}
+                style={{ backgroundColor: goal.color }}
+              >
+                {goal.id}
+              </div>
+
+              {/* 3. Fixed Tooltip Positioning & Styling */}
+              <div className="absolute bottom-full mb-3 w-max max-w-[150px] px-3 py-2 bg-slate-800 text-white text-xs rounded-md left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 shadow-lg text-center">
+                <p className="font-semibold mb-1">{goal.name}</p>
+                <p className="text-emerald-400 font-bold">{goal.points.toLocaleString()} pts</p>
+                {/* CSS Triangle pointing down */}
+                <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></div>
+              </div>
+
+            </div>
+          ))}
+        </div>
+      )}
     </section>
   );
 }

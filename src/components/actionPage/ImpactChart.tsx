@@ -12,8 +12,10 @@ interface GoalData {
 
 export default function ImpactChart() {
   const [goals, setGoals] = useState<GoalData[]>([]);
-  const [activeGoalId, setActiveGoalId] = useState("goal1");
+  // Start with an empty string, we will dynamically set this after fetching
+  const [activeGoalId, setActiveGoalId] = useState<string>(""); 
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null); // Added error state
 
   const labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const chartRef = useRef<HTMLCanvasElement | null>(null);
@@ -23,12 +25,22 @@ export default function ImpactChart() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setIsLoading(true);
+        setError(null);
+        
         const res = await fetch('/api/get-chart-data');
-        const data = await res.json();
-        // Assuming API returns the full GoalData objects
+        if (!res.ok) throw new Error("Failed to fetch data");
+        
+        const data: GoalData[] = await res.json();
         setGoals(data);
+        
+        // Dynamically set the active goal to the first item in the array
+        if (data && data.length > 0) {
+          setActiveGoalId(data[0].id);
+        }
       } catch (err) {
         console.error("Error fetching chart data:", err);
+        setError("Could not load impact data. Please try again later.");
       } finally {
         setIsLoading(false);
       }
@@ -40,9 +52,10 @@ export default function ImpactChart() {
 
   // 2. Chart Lifecycle
   useEffect(() => {
+    // If we don't have a canvas or an active goal yet, bail out
     if (!chartRef.current || !activeGoal) return;
 
-    // Destroy existing chart to prevent memory leaks and "canvas in use" errors
+    // Destroy existing chart to prevent memory leaks
     if (chartInstance.current) {
       chartInstance.current.destroy();
     }
@@ -60,20 +73,20 @@ export default function ImpactChart() {
           borderColor: activeGoal.color,
           backgroundColor: `${activeGoal.color}33`,
           borderWidth: 2,
-          borderRadius: 6, // Rounded bars look more modern
+          borderRadius: 6,
           hoverBackgroundColor: activeGoal.color,
         }],
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        animation: { duration: 750, easing: 'easeInOutQuart' }, // Smooth transitions
+        animation: { duration: 750, easing: 'easeInOutQuart' },
         plugins: {
           legend: { display: false },
           tooltip: {
             backgroundColor: '#1e293b',
             padding: 12,
-            titleFont: { size: 14, weight: 'bold' },
+            titleFont: { size: 14, weight: 'bold' as const },
             callbacks: {
               label: (context) => ` Points: ${context.parsed.y}`
             }
@@ -83,40 +96,49 @@ export default function ImpactChart() {
           y: { 
             beginAtZero: true,
             grid: { display: true, color: '#f1f5f9' },
-            ticks: { stepSize: 10 } // Cleaner scale
+            ticks: { stepSize: 10 }
           },
           x: { grid: { display: false } }
         },
       },
     });
 
+    // Cleanup function
     return () => {
-      if (chartInstance.current) chartInstance.current.destroy();
+      if (chartInstance.current) {
+        chartInstance.current.destroy();
+        chartInstance.current = null; // Nullify the ref to be safe
+      }
     };
-  }, [activeGoal, isLoading]); // Re-run when active goal changes or data finishes loading
+  }, [activeGoal]); // Removed isLoading from deps. activeGoal change is enough.
 
   return (
     <section className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 min-h-[400px]">
       <div className="flex flex-col sm:flex-row justify-between mb-8 gap-4">
         <div>
-          <h3 className="text-xl font-bold text-slate-800">Impact Tracking</h3>
-          <p className="text-sm text-slate-500">
-            {isLoading ? "Fetching data..." : `Monitoring ${activeGoal?.label}`}
+          <h3 className="text-xl font-bold text-emerald-600">Impact Tracking</h3>
+          <p className="text-sm text-emerald-800">
+            {isLoading ? "Fetching data..." : `Monitoring ${activeGoal?.label || 'Goals'}`}
           </p>
         </div>
 
-        <select
-          disabled={isLoading}
-          className="p-2 border rounded-lg bg-slate-50 text-sm focus:ring-2 focus:ring-emerald-500 outline-none disabled:opacity-50 transition-all cursor-pointer"
-          value={activeGoalId}
-          onChange={(e) => setActiveGoalId(e.target.value)}
-        >
-          {goals.map((goal) => (
-            <option key={goal.id} value={goal.id}>
-              Goal {goal.id.replace("goal", "")}: {goal.label}
-            </option>
-          ))}
-        </select>
+        {/* Accessibility: Added a label mapped to the select ID */}
+        <div className="flex flex-col">
+          <label htmlFor="goal-selector" className="sr-only">Select a Goal to view</label>
+          <select
+            id="goal-selector"
+            disabled={isLoading || !!error}
+            className="p-2 border rounded-lg bg-slate-50 text-sm focus:ring-2 focus:ring-emerald-500 outline-none disabled:opacity-50 transition-all cursor-pointer text-emerald-500"
+            value={activeGoalId}
+            onChange={(e) => setActiveGoalId(e.target.value)}
+          >
+            {goals.map((goal) => (
+              <option key={goal.id} value={goal.id}>
+                Goal {goal.id.replace("goal", "")}: {goal.label}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div className="relative h-72 w-full">
@@ -126,12 +148,23 @@ export default function ImpactChart() {
           </div>
         )}
         
-        {!isLoading && goals.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-slate-400">
+        {/* Render Error State */}
+        {!isLoading && error && (
+          <div className="h-full flex flex-col items-center justify-center text-red-500 text-sm font-medium">
+            <p>{error}</p>
+          </div>
+        )}
+
+        {/* Render Empty State */}
+        {!isLoading && !error && goals.length === 0 && (
+          <div className="h-full flex flex-col items-center justify-center text-emerald-800">
             <p>No impact data recorded yet.</p>
           </div>
-        ) : (
-          <canvas ref={chartRef}></canvas>
+        )}
+
+        {/* Render Canvas */}
+        {!isLoading && !error && goals.length > 0 && (
+          <canvas ref={chartRef} aria-label="Bar chart showing impact over time" role="img"></canvas>
         )}
       </div>
     </section>

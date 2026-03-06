@@ -30,10 +30,10 @@ function getSDGLabel(id: number) {
 
 function getSDGColor(id: number) {
   const colors = [
-    "#FF6B6B", "#4ECDC4", "#FFE66D", "#FF9F1C", "#2EC4B6",
-    "#E74C3C", "#3498DB", "#9B59B6", "#F1C40F", "#1ABC9C",
-    "#8E44AD", "#27AE60", "#E67E22", "#34495E", "#D35400",
-    "#2C3E50", "#7F8C8D"
+    "#E5243B", "#DDA63A", "#4C9F38", "#C5192D", "#FF3A21",
+    "#26BDE2", "#FCC30B", "#A21942", "#FD6925", "#DD1367",
+    "#FD9D24", "#BF8B2E", "#3F7E44", "#0A97D9", "#56C02B",
+    "#00689D", "#19486A"
   ];
   return colors[id - 1] || colors[0];
 }
