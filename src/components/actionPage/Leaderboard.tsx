@@ -1,3 +1,5 @@
+"use client";
+
 import { LeaderboardUser } from "@/types/action";
 import { useEffect, useState } from "react";
 
