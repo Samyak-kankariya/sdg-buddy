@@ -33,10 +33,11 @@ const SdgShowcase = () => {
             className="text-center group border-none bg-transparent cursor-pointer p-0" 
             aria-label={`View description for ${sdg.name}`}
           >
-            <div
-              className="w-16 h-16 rounded-lg flex items-center justify-center mx-auto text-white font-bold text-xl shadow-md group-hover:scale-110 transition-transform"
-              style={{ backgroundColor: sdg.color }}
-            >
+            <img
+              src={sdg.logo}
+              alt={sdg.name}
+              className="w-16 h-16 rounded-lg shadow-md group-hover:scale-110 transition-transform"
+            />
               {sdg.id}
             </div>
           </button>
