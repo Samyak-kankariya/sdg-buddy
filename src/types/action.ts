@@ -15,7 +15,7 @@ export interface User {
     id: number;
     name: string;
     points: number;
-    color: string;
+    logo: string;
   }
   
   export interface ChartData {
