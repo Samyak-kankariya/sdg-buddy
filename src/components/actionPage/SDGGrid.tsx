@@ -70,12 +70,13 @@ export default function SDGGrid() {
           {sdgData.map(goal => (
             <div key={goal.id} className="relative group flex flex-col items-center">
               
-              <div
-                className={`w-16 h-16 rounded-lg flex items-center justify-center text-white font-bold mx-auto transition-all duration-200 shadow-sm cursor-default
+              <img
+                src={goal.logo}
+                alt={goal.name}
+                className={`w-16 h-16 rounded-lg flex items-center justify-center mx-auto transition-all duration-200 shadow-sm cursor-default
                   ${goal.points > 0 ? 'ring-2 ring-offset-2 ring-emerald-500 scale-105' : 'opacity-70 hover:opacity-100'}
                 `}
-                style={{ backgroundColor: goal.color }}
-              >
+              />
                 {goal.id}
               </div>
 
